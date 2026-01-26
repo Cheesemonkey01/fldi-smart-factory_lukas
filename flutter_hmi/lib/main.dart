@@ -8,6 +8,8 @@ const broker = 'localhost'; // ggf. IP des PCs/Servers
 const port = 1883;
 const topicTemperature = 'factory/lightcell/telemetry/temperature';
 const topicStateCooling = 'factory/lightcell/state/cooling';
+const topicCmdSetpoint = 'factory/lightcell/command/setpoint';
+const topicCmdMode = 'factory/lightcell/command/mode';
 
 void main() {
   runApp(const SmartFactoryApp());
@@ -40,6 +42,8 @@ class _DashboardPageState extends State<DashboardPage> {
   bool coolingOn = false;
   String mode = 'AUTO';
   double setpoint = 28.0;
+  final TextEditingController _setpointController =
+      TextEditingController(text: '28.0');
 
   @override
   void initState() {
@@ -109,6 +113,37 @@ class _DashboardPageState extends State<DashboardPage> {
     debugPrint('Disconnected from MQTT broker');
   }
 
+  void _publishSetpoint() {
+    if (client.connectionStatus?.state != MqttConnectionState.connected) return;
+
+    final value = double.tryParse(_setpointController.text);
+    if (value == null) return;
+
+    final payload = jsonEncode({'setpoint': value});
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(payload);
+
+    client.publishMessage(
+      topicCmdSetpoint,
+      MqttQos.atMostOnce,
+      builder.payload!,
+    );
+  }
+
+  void _publishMode(String newMode) {
+    if (client.connectionStatus?.state != MqttConnectionState.connected) return;
+
+    final payload = jsonEncode({'mode': newMode});
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(payload);
+
+    client.publishMessage(
+      topicCmdMode,
+      MqttQos.atMostOnce,
+      builder.payload!,
+    );
+  }
+
   @override
   void dispose() {
     client.disconnect();
@@ -136,6 +171,42 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 8),
             Text('Mode: $mode'),
             Text('Setpoint: ${setpoint.toStringAsFixed(1)} °C'),
+            const SizedBox(height: 32),
+            Text('Setpoint ändern'),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _setpointController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Setpoint (°C)',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _publishSetpoint,
+                  child: const Text('Senden'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text('Mode wählen'),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () => _publishMode('AUTO'),
+                  child: const Text('AUTO'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () => _publishMode('MANUAL'),
+                  child: const Text('MANUAL'),
+                ),
+              ],
+            ),
           ],
         ),
       ),

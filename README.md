@@ -7,9 +7,19 @@ Abschlussprojekt_5AAME
 
     Das Projekt bildet bewusst eine realitätsnahe, dynamsiche Entwicklungsumgebung ab, in der sich Anforderungen, Lösungswege und Entscheidungen im Projektverlauf verändern können.
 
+**Inhaltsverzeichnis**
+
+- Quick Start & Command Cheat Sheet
+- Komponenten & Architektur
+- Docker & Mosquitto
+- Topics & Datenfluss
+- Tests & Smoke-Test
+- Branching Strategy (Git)
+- Hindernisse & Troubleshooting
+
 ### _______________
 
-## 🚀 Command Cheat Sheet - Alle Commands zum Ausführen
+## Quick Start & Command Cheat Sheet - Alle Commands zum Ausführen
 
 ### Einmalig: Abhängigkeiten installieren
 
@@ -83,16 +93,6 @@ python -c "import paho.mqtt.client; print('MQTT OK')"
 
 ---
 
-## Mosquitto Integration Branch
-
-Dieser Branch enthält die Anpassungen für die Integration der **Mosquitto MQTT Broker** Konfiguration in die Docker-Compose Umgebung.
-
-### Änderungen in diesem Branch:
-
-- **docker-compose.yml** aktualisiert: Mosquitto Container nutzt jetzt die `mosquitto.conf` Datei direkt aus dem Host-System
-- Die Konfiguration wird als Volume in den Container gemountet: `./mosquitto.conf:/mosquitto/config/mosquitto.conf`
-- Entfernte Datenvolumes für Persistierung (mosquitto.data und mosquitto.log)
-
 ### Mosquitto MQTT Broker
 
 Der Mosquitto Service läuft im Docker Container mit folgenden Konfigurationen:
@@ -113,7 +113,7 @@ Die Konfigurationsdatei definiert:
 
 ### Verwendung
 
-Zum Starten des Mosquitto Containers:
+Zum Starten des Containers:
 
 ```bash
 docker-compose up -d
@@ -132,6 +132,15 @@ docker-compose down
 
 ---
 
+## Branching Strategy (Git)
+
+Empfohlenes, leichtgewichtiges Modell (angelehnt an Git-Flow):
+
+- `main` 
+- `feature/<name>`
+
+---
+
 ## Projektarchitektur
 
 Das Smart Factory-System besteht aus drei Hauptkomponenten:
@@ -143,7 +152,7 @@ Das Smart Factory-System besteht aus drei Hauptkomponenten:
 │                                                         │
 │  • Temperaturanzeige                                    │
 │  • Kühlungsstatus                                       │
-│  • Mode-Auswahl (AUTO/MANUAL)                          │
+│  • Mode-Auswahl (AUTO/MANUAL)                           │
 │  • Setpoint-Eingabe                                     │
 └─────────────────┬───────────────────────────────────────┘
                   │

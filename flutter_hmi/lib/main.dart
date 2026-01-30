@@ -10,6 +10,7 @@ const topicTemperature = 'factory/lightcell/telemetry/temperature';
 const topicStateCooling = 'factory/lightcell/state/cooling';
 const topicCmdSetpoint = 'factory/lightcell/command/setpoint';
 const topicCmdMode = 'factory/lightcell/command/mode';
+const topicCmdCooling = 'factory/lightcell/command/cooling';
 
 void main() {
   runApp(const SmartFactoryApp());
@@ -142,6 +143,25 @@ class _DashboardPageState extends State<DashboardPage> {
       MqttQos.atMostOnce,
       builder.payload!,
     );
+
+    // immediate local UI feedback: set mode now and wait for controller state update
+    setState(() {
+      mode = newMode;
+    });
+  }
+
+  void _publishCooling(bool on) {
+    if (client.connectionStatus?.state != MqttConnectionState.connected) return;
+
+    final payload = jsonEncode({'cooling_on': on});
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(payload);
+
+    client.publishMessage(
+      topicCmdCooling,
+      MqttQos.atMostOnce,
+      builder.payload!,
+    );
   }
 
   @override
@@ -207,6 +227,25 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ],
             ),
+            if (mode == 'MANUAL') ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Text('Manuelle Kühlung'),
+                  const SizedBox(width: 8),
+                  Switch(
+                    value: coolingOn,
+                    onChanged: (value) {
+                      if (client.connectionStatus?.state != MqttConnectionState.connected) return;
+                      setState(() {
+                        coolingOn = value;
+                      });
+                      _publishCooling(value);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
